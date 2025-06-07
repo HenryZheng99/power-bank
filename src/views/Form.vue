@@ -391,13 +391,14 @@
   }
   
   .btn {
-    font-weight: bold;
+    font-family: 'EnglishFont';
     padding: 20px 40px;
     border: none;
     cursor: pointer;
     letter-spacing: 3px;
     font-family: inherit;
     transition: all 0.1s ease;
+    font-size: 18px;
     box-shadow: 0 6px 0 rgba(0,0,0,0.3);
   }
   
