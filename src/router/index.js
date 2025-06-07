@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import PowerBankForm from '@/components/PowerBankForm.vue'
+import PowerBankForm from '@/views/Form.vue'
 import LEDDisplay from '@/views/LED.vue'
 
 Vue.use(VueRouter)
