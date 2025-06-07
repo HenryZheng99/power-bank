@@ -1,5 +1,6 @@
 <template>
-    <div class="fitness-container">
+    <div class="wrapper">
+        <div class="fitness-container">
       <!-- Header with corner frame decorations -->
       <div class="header">
         <!-- Top Left Corner -->
@@ -24,7 +25,7 @@
           </svg>
         </div>
         
-        <h1 class="title">POWER BANK</h1>
+        <h1 class="title english-text">POWER BANK</h1>
         
         <!-- Bottom Left Corner -->
         <div class="corner-decoration bottom-left">
@@ -54,7 +55,7 @@
       <form @submit.prevent="submitForm" class="form">
         <!-- Name Field -->
         <div class="form-group">
-          <label class="label">名字 YOUR NAME</label>
+          <label class="label"><span class="chinese-text">名字</span> <span class="english-text fz16">YOUR NAME</span></label>
           <input 
             v-model="formData.name" 
             type="text" 
@@ -65,7 +66,7 @@
   
         <!-- Exercise Field -->
         <div class="form-group">
-          <label class="label">动作 EXERCISE</label>
+          <label class="label"><span class="chinese-text">动作</span> <span class="english-text fz16">EXERCISE</span></label>
           <input 
             v-model="formData.exercise" 
             type="text" 
@@ -76,7 +77,7 @@
   
         <!-- Weight Field -->
         <div class="form-group weight-group">
-          <label class="label">重量 WEIGHT</label>
+          <label class="label"><span class="chinese-text">重量</span> <span class="english-text fz16">WEIGHT</span></label>
           <div class="weight-input-container">
             <input 
               v-model="formData.weight" 
@@ -90,7 +91,7 @@
   
         <!-- Number Fields -->
         <div class="form-group number-group">
-          <label class="label">数量 NUMBER</label>
+          <label class="label"><span class="chinese-text">数量</span> <span class="english-text fz16">NUMBER</span> </label>
           <div class="number-inputs">
             <div class="number-input-group">
               <input 
@@ -146,6 +147,7 @@
           <div class="success-text">WORKOUT DATA SAVED</div>
         </div>
       </div>
+    </div>
     </div>
   </template>
   
@@ -206,14 +208,45 @@
   </script>
   
   <style scoped>
-  .fitness-container {
-    min-height: 100vh;
-    background-color: #000000;
-    color: white;
+
+@font-face {
+  font-family: 'ChineseFont';
+  src: url('@/static/font/3665.TTF') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'EnglishFont';
+  src: url('@/static/font/MODERNIZ.OTF') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* 应用中文字体 */
+.chinese-text {
+  font-family: 'ChineseFont', 'Microsoft YaHei', 'SimHei', sans-serif;
+}
+
+/* 应用英文字体 */
+.english-text {
+  font-family: 'EnglishFont', 'Arial Black', Arial, sans-serif;
+  white-space: nowrap;
+}
+.wrapper {
     font-family: 'Arial Black', Arial, sans-serif;
-    font-weight: bold;
-    padding: 40px 20px;
+    font-weight: normal;
+    height: 100vh;
+    background-color: #000000;
+    font-size: 18px;
+    color: white;
     position: relative;
+}
+
+  .fitness-container {
+    position: absolute; left: 50%; top: 50%;
+ transform: translate(-50%, -50%); 
   }
   
   .header {
@@ -224,11 +257,11 @@
   }
   
   .title {
-    font-size: 4rem;
     color: #ff1744;
-    letter-spacing: 8px;
-    margin: 0;
+    letter-spacing: 2px;
+    margin-bottom: 80px;
     font-weight: 900;
+    font-size: 44px;
   }
   
   .corner-decoration {
@@ -265,29 +298,35 @@
   }
   
   .form-group {
-    margin-bottom: 30px;
+    margin-bottom: 40px;
     display: flex;
     align-items: center;
   }
   
   .label {
     color: #ff1744;
-    font-size: 1.2rem;
-    font-weight: bold;
-    width: 200px;
+    width: 240px;
     text-align: left;
     letter-spacing: 2px;
+    font-size: 22px;
+    .english-text {
+        font-size: 18px;
+    }
   }
   
   .input-field {
     background-color: #666666;
     border: none;
     color: white;
-    font-size: 1.5rem;
-    font-weight: bold;
+    height: 44px;
     padding: 15px 20px;
+    flex:1;
     outline: none;
     font-family: inherit;
+    font-size: 20px;
+    font-family: 'ChineseFont';
+    font-weight: normal;
+    letter-spacing: 2px;
   }
   
   .input-field::placeholder {
@@ -312,9 +351,9 @@
   
   .weight-unit {
     color: #ff1744;
-    font-size: 1.5rem;
     font-weight: bold;
     letter-spacing: 2px;
+    padding-left: 10px;
   }
   
   .number-group {
@@ -340,7 +379,6 @@
   
   .number-label {
     color: #ff1744;
-    font-size: 1.2rem;
     font-weight: bold;
     letter-spacing: 2px;
   }
@@ -353,7 +391,6 @@
   }
   
   .btn {
-    font-size: 1.5rem;
     font-weight: bold;
     padding: 20px 40px;
     border: none;
@@ -403,7 +440,6 @@
   
   .success-title {
     color: #ff1744;
-    font-size: 2.5rem;
     font-weight: bold;
     letter-spacing: 4px;
     margin-bottom: 10px;
@@ -411,7 +447,6 @@
   
   .success-text {
     color: white;
-    font-size: 1.2rem;
     font-weight: bold;
     letter-spacing: 2px;
   }
