@@ -1,263 +1,253 @@
 <template>
   <div class="led-container">
-    <!-- LED网格背景 -->
-    <div class="led-grid"></div>
+    <!-- 网格背景 -->
+    <div class="grid-background"></div>
     
-    <!-- 滚动字幕容器 -->
-    <div class="marquee-container">
-      <div class="marquee-content" ref="marqueeContent">
-        <div class="marquee-line" v-for="(line, index) in displayLines" :key="index">
-          <span class="marquee-text" :style="getAnimationStyle(index)">
-            {{ line }}
+    <!-- 滚动内容 -->
+    <div class="scrolling-content">
+      <div 
+        v-for="(row, rowIndex) in displayRows" 
+        :key="`row-${rowIndex}`"
+        class="scroll-row"
+        :style="{ 
+          top: `${rowIndex * rowHeight}px`,
+          animationDelay: `${rowIndex * 0.3}s`
+        }"
+      >
+        <div class="scroll-text" :style="{ animationDuration: `${getAnimationDuration(rowIndex)}s` }">
+          <span 
+            v-for="(item, itemIndex) in row" 
+            :key="`${item.timestamp}-${itemIndex}`"
+            class="scroll-item"
+          >
+            {{ item.text }}
           </span>
         </div>
       </div>
-    </div>
-
-    <!-- 返回按钮 -->
-    <div class="back-button">
-      <button @click="goBack" class="btn-back">返回表单</button>
     </div>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'LEDDisplay',
+  name: 'LedDisplay',
   data() {
     return {
-      baseText: '杠铃深蹲 1300KG 哑铃弓步蹲 960KG 罗马尼亚硬拉 2100KG',
-      displayLines: [],
-      lineCount: 8,
-      animationDuration: 30 // 秒
+      allData: [],
+      displayRows: [],
+      maxRows: 8, // 基于160像素高度，最多8行比较合适
+      rowHeight: 20 // 每行20像素高度
     }
   },
   mounted() {
-    this.generateDisplayLines()
-    this.startAnimation()
+    this.loadDataFromStorage()
+    this.setupStorageListener()
+    this.organizeDataIntoRows()
+  },
+  beforeDestroy() {
+    window.removeEventListener('storage', this.handleStorageChange)
   },
   methods: {
-    generateDisplayLines() {
-      // 生成多行滚动文本，每行稍有不同的起始位置
-      for (let i = 0; i < this.lineCount; i++) {
-        let line = ''
-        // 每行重复文本多次以确保连续滚动
-        for (let j = 0; j < 10; j++) {
-          line += this.baseText + '    '
+    loadDataFromStorage() {
+      try {
+        const fitnessData = JSON.parse(localStorage.getItem('fitnessData') || '{}')
+        this.allData = []
+        
+        Object.keys(fitnessData).forEach(date => {
+          fitnessData[date].forEach(item => {
+            this.allData.push({
+              ...item,
+              text: `${item.name} ${item.exercise} ${item.weight}KG ${item.reps}REP ${item.sets}SETS`
+            })
+          })
+        })
+        
+        this.allData.sort((a, b) => b.timestamp - a.timestamp)
+      } catch (error) {
+        console.error('Error loading data from storage:', error)
+        this.allData = []
+      }
+    },
+    setupStorageListener() {
+      window.addEventListener('storage', this.handleStorageChange)
+      
+      const originalSetItem = localStorage.setItem
+      localStorage.setItem = (key, value) => {
+        originalSetItem.call(localStorage, key, value)
+        if (key === 'fitnessData') {
+          this.handleStorageChange({ key, newValue: value })
         }
-        this.displayLines.push(line)
       }
     },
-    
-    getAnimationStyle(lineIndex) {
-      // 每行有不同的动画延迟，创造错位效果
-      const delay = lineIndex * 2
-      return {
-        animationDelay: `-${delay}s`,
-        animationDuration: `${this.animationDuration}s`
+    handleStorageChange(event) {
+      if (event.key === 'fitnessData') {
+        this.loadDataFromStorage()
+        this.organizeDataIntoRows()
       }
     },
-    
-    startAnimation() {
-      // 动画已通过CSS实现，这里可以添加额外的控制逻辑
-      console.log('LED滚动字幕已启动')
+    organizeDataIntoRows() {
+      if (this.allData.length === 0) {
+        this.displayRows = []
+        return
+      }
+      
+      this.displayRows = []
+      const itemsPerRow = Math.ceil(this.allData.length / this.maxRows)
+      
+      for (let i = 0; i < this.maxRows; i++) {
+        const rowData = []
+        const startIndex = i * itemsPerRow
+        
+        for (let j = 0; j < itemsPerRow && (startIndex + j) < this.allData.length; j++) {
+          const dataIndex = startIndex + j
+          if (this.allData[dataIndex]) {
+            rowData.push({
+              ...this.allData[dataIndex],
+              id: `${i}-${dataIndex}-${this.allData[dataIndex].timestamp}`
+            })
+          }
+        }
+        
+        if (rowData.length > 0) {
+          this.displayRows.push(rowData)
+        }
+      }
     },
-    
-    goBack() {
-      this.$router.push('/')
+    getAnimationDuration(rowIndex) {
+      // 基于2880像素宽度调整滚动速度
+      const baseDuration = 25
+      const variations = [0, 3, -2, 5, -1, 4, -3, 6]
+      return baseDuration + (variations[rowIndex % variations.length] || 0)
     }
   }
 }
 </script>
 
 <style scoped>
-.led-container {
-  position: relative;
-  width: 100vw;
-  height: 100vh;
-  background-color: #000;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+@font-face {
+  font-family: 'TextFont';
+  src: url('@/static/font/REEJI.TTF') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
 }
 
-/* LED网格背景 */
-.led-grid {
+@font-face {
+  font-family: 'DigitalFont';
+  src: url('@/static/font/DIGITAL.TTF') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+.digital-font {
+  font-family: 'DigitalFont';
+}
+
+.led-container {
+  width: 100vw;
+  height: 100vh;
+  background-color: #000000;
+  position: relative;
+  overflow: hidden;
+  font-family: 'TextFont';
+}
+
+.grid-background {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
   background-image: 
-    linear-gradient(rgba(0, 255, 0, 0.1) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 255, 0, 0.1) 1px, transparent 1px);
-  background-size: 20px 20px;
+    linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-size: 2px 2.2px; /* 基于像素密度调整网格大小 */
   z-index: 1;
 }
 
-/* 添加LED点效果 */
-.led-grid::before {
-  content: '';
+.scrolling-content {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  padding: 0;
+}
+
+.scroll-row {
   position: absolute;
-  top: 0;
   left: 0;
   width: 100%;
-  height: 100%;
-  background-image: radial-gradient(circle at center, rgba(0, 255, 0, 0.3) 1px, transparent 1px);
-  background-size: 20px 20px;
-  background-position: 10px 10px;
-}
-
-/* 滚动字幕容器 */
-.marquee-container {
-  position: relative;
-  width: 100%;
-  height: 60%;
-  z-index: 2;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-.marquee-content {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-around;
-}
-
-.marquee-line {
-  width: 100%;
-  height: calc(100% / 8);
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  position: relative;
-}
-
-.marquee-text {
-  display: inline-block;
+  height: 20px; /* 基于160像素高度，每行20像素 */
   white-space: nowrap;
-  font-family: 'Courier New', monospace;
-  font-size: 2.5rem;
-  font-weight: bold;
-  color: #00ff00;
-  text-shadow: 
-    0 0 5px #00ff00,
-    0 0 10px #00ff00,
-    0 0 15px #00ff00,
-    0 0 20px #00ff00;
-  animation: scrollLeft linear infinite;
-  letter-spacing: 3px;
+  overflow: hidden;
 }
 
-/* 滚动动画 */
-@keyframes scrollLeft {
+.scroll-text {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  animation: scrollRight linear infinite;
+  font-size: 12px;
+  font-weight: bold;
+  color: #ffffff;
+  letter-spacing: 2px;
+}
+
+.scroll-item {
+  display: inline-block;
+  margin-right: 30px; /* 减少间距以适应更密集的显示 */
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
+}
+
+/* 从左向右滚动动画 */
+@keyframes scrollRight {
   0% {
+    transform: translateX(-100%);
+  }
+  100% {
     transform: translateX(100vw);
   }
-  100% {
-    transform: translateX(-100%);
+}
+
+/* LED点阵效果 */
+.scroll-text {
+  text-shadow: 
+    0 0 3px #ffffff,
+    0 0 6px #ffffff,
+    0 0 9px #ffffff,
+    0 0 12px #ffffff;
+  filter: contrast(1.2) brightness(1.1);
+}
+
+/* 模拟LED点阵的像素化效果 */
+.scroll-item {
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+}
+
+/* 添加LED闪烁效果 */
+@keyframes ledGlow {
+  0%, 100% {
+    text-shadow: 
+      0 0 3px #ffffff,
+      0 0 6px #ffffff,
+      0 0 9px #ffffff,
+      0 0 12px #ffffff;
+    opacity: 1;
+  }
+  50% {
+    text-shadow: 
+      0 0 2px #ffffff,
+      0 0 4px #ffffff,
+      0 0 6px #ffffff,
+      0 0 8px #ffffff;
+    opacity: 0.9;
   }
 }
 
-/* 返回按钮 */
-.back-button {
-  position: absolute;
-  top: 30px;
-  left: 30px;
-  z-index: 3;
-}
-
-.btn-back {
-  padding: 12px 24px;
-  background-color: rgba(0, 255, 0, 0.2);
-  border: 2px solid #00ff00;
-  color: #00ff00;
-  font-size: 1rem;
-  font-weight: bold;
-  cursor: pointer;
-  letter-spacing: 1px;
-  transition: all 0.3s ease;
-  font-family: 'Courier New', monospace;
-  text-shadow: 0 0 5px #00ff00;
-}
-
-.btn-back:hover {
-  background-color: rgba(0, 255, 0, 0.4);
-  box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
-  transform: scale(1.05);
-}
-
-.btn-back:active {
-  transform: scale(0.95);
-}
-
-/* 响应式设计 */
-@media (max-width: 768px) {
-  .marquee-text {
-    font-size: 1.5rem;
-    letter-spacing: 2px;
-  }
-  
-  .led-grid {
-    background-size: 15px 15px;
-  }
-  
-  .led-grid::before {
-    background-size: 15px 15px;
-    background-position: 7.5px 7.5px;
-  }
-  
-  .btn-back {
-    font-size: 0.9rem;
-    padding: 10px 20px;
-  }
-}
-
-@media (max-width: 480px) {
-  .marquee-text {
-    font-size: 1.2rem;
-    letter-spacing: 1px;
-  }
-  
-  .led-grid {
-    background-size: 12px 12px;
-  }
-  
-  .led-grid::before {
-    background-size: 12px 12px;
-    background-position: 6px 6px;
-  }
-}
-
-/* 增强LED效果 */
-.marquee-text::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(0, 255, 0, 0.1) 50%,
-    transparent 100%
-  );
-  animation: scanLine 2s linear infinite;
-  pointer-events: none;
-}
-
-@keyframes scanLine {
-  0% {
-    transform: translateX(-100%);
-  }
-  100% {
-    transform: translateX(100%);
-  }
+.scroll-text {
+  animation: scrollRight linear infinite, ledGlow 4s ease-in-out infinite;
 }
 </style>
