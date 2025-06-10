@@ -87,31 +87,39 @@ export default {
     },
     organizeDataIntoRows() {
       if (this.allData.length === 0) {
-        this.displayRows = []
-        return
+        this.displayRows = Array(this.maxRows).fill().map(() => []);
+        return;
       }
-      
-      this.displayRows = []
-      const itemsPerRow = Math.ceil(this.allData.length / this.maxRows)
-      
-      for (let i = 0; i < this.maxRows; i++) {
-        const rowData = []
-        const startIndex = i * itemsPerRow
+
+      // 按时间排序（最近的数据优先）
+      const sortedData = [...this.allData].sort((a, b) => {
+        return b.timestamp - a.timestamp;
+      });
+
+      // 初始化每行的队列
+      this.displayRows = Array(this.maxRows).fill().map(() => []);
+
+      // 为每行添加延迟比例（形成波浪效果）
+      const rowDelayRatios = Array(this.maxRows).fill().map((_, i) => {
+        return 0.1 * (this.maxRows - i - 1); // 从上到下的递减延迟
+      });
+
+      // 分配数据到行
+      sortedData.forEach((data) => {
+        // 选择当前数据最少的行（保持分布均匀）
+        const rowIndex = this.displayRows.reduce((minIndex, row, i) => {
+          return row.length < this.displayRows[minIndex].length ? i : minIndex;
+        }, 0);
         
-        for (let j = 0; j < itemsPerRow && (startIndex + j) < this.allData.length; j++) {
-          const dataIndex = startIndex + j
-          if (this.allData[dataIndex]) {
-            rowData.push({
-              ...this.allData[dataIndex],
-              id: `${i}-${dataIndex}-${this.allData[dataIndex].timestamp}`
-            })
-          }
-        }
+        const delay = rowDelayRatios[rowIndex];
         
-        if (rowData.length > 0) {
-          this.displayRows.push(rowData)
-        }
-      }
+        this.displayRows[rowIndex].push({
+          ...data,
+          id: `${rowIndex}-${data.id}-${data.timestamp}`,
+          delay, // 行错位参数
+          duration: 8 + Math.random() * 4 // 随机动画时长（8-12秒）
+        });
+      });
     },
     getAnimationDuration(rowIndex) {
       // 基于2880像素宽度调整滚动速度
@@ -162,7 +170,7 @@ export default {
   background-image: 
     linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
-  background-size: 2px 2.2px; /* 基于像素密度调整网格大小 */
+  background-size: 16px 16px; /* 基于像素密度调整网格大小 */
   z-index: 1;
 }
 
