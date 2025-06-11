@@ -218,7 +218,7 @@ export default {
   white-space: nowrap;
   animation: scrollRight linear infinite;
   font-size: 12px;
-  font-weight: bold;
+  font-weight: normal;
   color: #ffffff;
   letter-spacing: 2px;
 }

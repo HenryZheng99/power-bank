@@ -165,7 +165,7 @@
       @mouseup="fullscreenPressed = false"
       @mouseleave="fullscreenPressed = false"
     >
-      FULL SCREEN
+      FULL
     </button>
   </div>
 </template>
@@ -367,7 +367,7 @@ white-space: nowrap;
 }
 .fullscreen-btn {
   position: fixed;
-  right: 10px;
+  right: 20px;
   bottom: 10px;
   z-index: 1000;
   background: none;
