@@ -156,6 +156,17 @@
       </div>
     </div>
   </div>
+    <button 
+      v-if="!isFullscreen"
+      class="fullscreen-btn english-text"
+      @click="toggleFullscreen"
+      :class="{ 'pressed': fullscreenPressed }"
+      @mousedown="fullscreenPressed = true"
+      @mouseup="fullscreenPressed = false"
+      @mouseleave="fullscreenPressed = false"
+    >
+      FULL SCREEN
+    </button>
   </div>
 </template>
 
@@ -175,10 +186,47 @@ export default {
       showError: false,
       errorMessage: '',
       deletePressed: false,
-      enterPressed: false
+      enterPressed: false,
+      // 新增状态
+      fullscreenPressed: false,
+      isFullscreen: false,
     }
   },
+  mounted() {
+    document.addEventListener('fullscreenchange', this.handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', this.handleFullscreenChange);
+    document.addEventListener('msfullscreenchange', this.handleFullscreenChange);
+  },
+  beforeDestroy() {
+    document.removeEventListener('fullscreenchange', this.handleFullscreenChange);
+    document.removeEventListener('webkitfullscreenchange', this.handleFullscreenChange);
+    document.removeEventListener('msfullscreenchange', this.handleFullscreenChange);
+  },
   methods: {
+    handleFullscreenChange() {
+      this.isFullscreen = !!document.fullscreenElement;
+    },
+    toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        // 进入全屏
+        if (document.documentElement.requestFullscreen) {
+          document.documentElement.requestFullscreen()
+        } else if (document.documentElement.webkitRequestFullscreen) { /* Safari */
+          document.documentElement.webkitRequestFullscreen()
+        } else if (document.documentElement.msRequestFullscreen) { /* IE11 */
+          document.documentElement.msRequestFullscreen()
+        }
+      } else {
+        // 退出全屏（可选）
+        if (document.exitFullscreen) {
+          document.exitFullscreen()
+        } else if (document.webkitExitFullscreen) { /* Safari */
+          document.webkitExitFullscreen()
+        } else if (document.msExitFullscreen) { /* IE11 */
+          document.msExitFullscreen()
+        }
+      }
+    },
     submitForm() {
       // 检查所有字段是否都已填写
       const requiredFields = ['name', 'exercise', 'weight', 'reps', 'sets']
@@ -316,6 +364,37 @@ white-space: nowrap;
   font-size: 18px;
   color: white;
   position: relative;
+}
+.fullscreen-btn {
+  position: fixed;
+  right: 10px;
+  bottom: 10px;
+  z-index: 1000;
+  background: none;
+  border: 1px solid #666;
+  color: #666;
+  padding: 4px 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 14px;
+  letter-spacing: 1px;
+  opacity: 0.5;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fullscreen-btn:hover {
+  opacity: 0.8;
+  transform: scale(1.1);
+}
+
+.fullscreen-btn.pressed {
+  transform: scale(0.9);
+  opacity: 0.7;
 }
 
 .fitness-container {
