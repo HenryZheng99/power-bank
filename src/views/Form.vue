@@ -351,6 +351,10 @@ font-display: swap;
 font-family: 'ChineseFont', 'Microsoft YaHei', 'SimHei', sans-serif;
 }
 
+.marginRight {
+  margin-right: 10px;
+}
+
 /* 应用英文字体 */
 .english-text {
 font-family: 'EnglishFont', 'Arial Black', Arial, sans-serif;
@@ -458,13 +462,15 @@ transform: translate(-50%, -50%);
 
 .label {
   color: #ff1744;
-  width: 240px;
+  width: 250px;
   text-align: left;
+  padding-right: 12px;
   letter-spacing: 2px;
   font-size: 22px;
-  .english-text {
-      font-size: 18px;
-  }
+}
+
+.label .english-text {
+  font-size: 18px;
 }
 
 .input-field {
